@@ -28,20 +28,22 @@ type FilevaultSpec struct {
 	// INSERT ADDITIONAL SPEC FIELDS - desired state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
 
-    //+kubebuilder:default:=localhost
-    Host string `json:"host,omitempty"`
+	//+kubebuilder:default:=localhost
+	Host string `json:"host,omitempty"`
 
-    //+kubebuilder:default:=8080
-    Port int `json:"port,omitempty"`
+	//+kubebuilder:default:=8080
+	Port int `json:"port,omitempty"`
 
-    //+kubebuilder:validation:required
-    Dir string `json:"dir,omitempty"`
+	//+kubebuilder:default:="10Gi"
+	Capacity string `json:"capacity,omitempty"`
 }
 
 // FilevaultStatus defines the observed state of Filevault
 type FilevaultStatus struct {
 	// INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
 	// Important: Run "make" to regenerate code after modifying this file
+
+	Capacity string `json:"capacity,omitempty"`
 }
 
 //+kubebuilder:object:root=true
@@ -53,7 +55,7 @@ type Filevault struct {
 	metav1.ObjectMeta `json:"metadata,omitempty"`
 
 	Spec   FilevaultSpec   `json:"spec,omitempty"`
-	//Status FilevaultStatus `json:"status,omitempty"`
+	Status FilevaultStatus `json:"status,omitempty"`
 }
 
 //+kubebuilder:object:root=true

@@ -39,7 +39,8 @@ spec:
           spec:
             description: FilevaultSpec defines the desired state of Filevault
             properties:
-              dir:
+              capacity:
+                default: 10Gi
                 type: string
               host:
                 default: localhost
@@ -47,6 +48,12 @@ spec:
               port:
                 default: 8080
                 type: integer
+            type: object
+          status:
+            description: FilevaultStatus defines the observed state of Filevault
+            properties:
+              capacity:
+                type: string
             type: object
         type: object
     served: true
