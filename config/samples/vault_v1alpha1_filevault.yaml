@@ -7,6 +7,7 @@ metadata:
     app.kubernetes.io/part-of: filevault-operator
     app.kubernetes.io/managed-by: kustomize
     app.kubernetes.io/created-by: filevault-operator
-  name: filevault-sample
+  name: hwr
+  namespace: filevault
 spec:
-  # TODO(user): Add fields here
+  capacity: "10Gi"

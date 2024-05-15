@@ -52,7 +52,13 @@ spec:
           status:
             description: FilevaultStatus defines the observed state of Filevault
             properties:
+              PVCName:
+                type: string
+              PVName:
+                type: string
               capacity:
+                type: string
+              deploymentName:
                 type: string
             type: object
         type: object

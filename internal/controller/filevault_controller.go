@@ -21,8 +21,10 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"time"
 
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
@@ -30,7 +32,6 @@ import (
 	vaultv1alpha1 "github.com/naivary/filevault-operator/api/v1alpha1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -77,7 +78,7 @@ func (r *FilevaultReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	l := log.FromContext(ctx)
 
 	var filevault vaultv1alpha1.Filevault
-	if err := r.Get(ctx, req.NamespacedName, &filevault); err != nil && !apierrors.IsNotFound(err) {
+	if err := r.Get(ctx, req.NamespacedName, &filevault); err != nil {
 		l.Error(err, "couldn't fetch filevault resource")
 		return ctrl.Result{}, err
 	}
@@ -98,6 +99,15 @@ func (r *FilevaultReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 
+	// check if deployment exits
+	deployName := fmt.Sprintf("filevault-deploy-%s", req.Name)
+	dep := &appsv1.Deployment{}
+	err = r.Get(ctx, types.NamespacedName{Namespace: req.Namespace, Name: deployName}, dep)
+	if err == nil {
+		// object exits and the assumption is everything else does too
+		return ctrl.Result{RequeueAfter: 1 * time.Minute}, nil
+	}
+
 	volumeMode := corev1.PersistentVolumeFilesystem
 	pv := r.newPV(&filevault, dir, &volumeMode)
 	pvc := r.newPVC(&filevault, &volumeMode, pv)
@@ -112,11 +122,13 @@ func (r *FilevaultReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	}
 
 	filevault.Status.Capacity = filevault.Spec.Capacity
+	filevault.Status.PVCName = pvc.ObjectMeta.Name
+	filevault.Status.PVName = pv.ObjectMeta.Name
+	filevault.Status.DeploymentName = deploy.ObjectMeta.Name
 
 	if err := r.Status().Update(ctx, &filevault); err != nil {
 		l.Error(err, "coudln't update the status of the filevault")
 	}
-
 	return ctrl.Result{}, nil
 }
 
@@ -128,9 +140,11 @@ func (r *FilevaultReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *FilevaultReconciler) newDeployment(f *vaultv1alpha1.Filevault, pvc *corev1.PersistentVolumeClaim) *appsv1.Deployment {
+	name := fmt.Sprintf("filevault-deplo-%s", f.ObjectMeta.Name)
 	return &appsv1.Deployment{
 		ObjectMeta: metav1.ObjectMeta{
 			Namespace: f.ObjectMeta.Namespace,
+			Name:      name,
 		},
 		Spec: appsv1.DeploymentSpec{
 			Replicas: int32ptr(3),
@@ -149,11 +163,11 @@ func (r *FilevaultReconciler) newDeployment(f *vaultv1alpha1.Filevault, pvc *cor
 					Containers: []corev1.Container{
 						{
 							Name:  "filevault",
-							Image: "filevault:latest",
+							Image: "naivary/filevault:latest",
 							VolumeMounts: []corev1.VolumeMount{
 								{
 									MountPath: "/tmp/filevault",
-									Name:      pvc.ObjectMeta.Name,
+									Name:      "filevault-volume",
 								},
 							},
 						},
@@ -199,8 +213,7 @@ func (r *FilevaultReconciler) newPVC(f *vaultv1alpha1.Filevault, volumeMode *cor
 func (r *FilevaultReconciler) newPV(f *vaultv1alpha1.Filevault, dir string, volumeMode *corev1.PersistentVolumeMode) *corev1.PersistentVolume {
 	return &corev1.PersistentVolume{
 		ObjectMeta: metav1.ObjectMeta{
-			Namespace: f.ObjectMeta.Namespace,
-			Name:      fmt.Sprintf("filevault-pv-%s", f.ObjectMeta.Name),
+			Name: fmt.Sprintf("filevault-pv-%s", f.ObjectMeta.Name),
 		},
 		Spec: corev1.PersistentVolumeSpec{
 			Capacity:                      corev1.ResourceList{corev1.ResourceStorage: resource.MustParse(f.Spec.Capacity)},
@@ -211,6 +224,21 @@ func (r *FilevaultReconciler) newPV(f *vaultv1alpha1.Filevault, dir string, volu
 			PersistentVolumeSource: corev1.PersistentVolumeSource{
 				Local: &corev1.LocalVolumeSource{
 					Path: dir,
+				},
+			},
+			NodeAffinity: &corev1.VolumeNodeAffinity{
+				Required: &corev1.NodeSelector{
+					NodeSelectorTerms: []corev1.NodeSelectorTerm{
+						{
+							MatchExpressions: []corev1.NodeSelectorRequirement{
+								{
+									Key:      "kubernetes.io/hostname",
+									Operator: corev1.NodeSelectorOpIn,
+									Values:   []string{"k8s-n1", "k8s-n2"},
+								},
+							},
+						},
+					},
 				},
 			},
 		},

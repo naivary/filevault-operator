@@ -44,6 +44,12 @@ type FilevaultStatus struct {
 	// Important: Run "make" to regenerate code after modifying this file
 
 	Capacity string `json:"capacity,omitempty"`
+
+	PVName string `json:"PVName,omitempty"`
+
+	PVCName string `json:"PVCName,omitempty"`
+
+	DeploymentName string `json:"deploymentName,omitempty"`
 }
 
 //+kubebuilder:object:root=true
