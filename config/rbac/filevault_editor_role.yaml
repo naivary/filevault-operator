@@ -1,0 +1,31 @@
+# permissions for end users to edit filevaults.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: filevault-editor-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: filevault-operator
+    app.kubernetes.io/part-of: filevault-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: filevault-editor-role
+rules:
+- apiGroups:
+  - vault.filevault.com
+  resources:
+  - filevaults
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - vault.filevault.com
+  resources:
+  - filevaults/status
+  verbs:
+  - get
