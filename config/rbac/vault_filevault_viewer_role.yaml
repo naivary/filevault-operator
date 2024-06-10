@@ -1,0 +1,23 @@
+# permissions for end users to view filevaults.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: filevault-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: vault-filevault-viewer-role
+rules:
+- apiGroups:
+  - vault.filevault.com
+  resources:
+  - filevaults
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - vault.filevault.com
+  resources:
+  - filevaults/status
+  verbs:
+  - get

@@ -1,0 +1,9 @@
+apiVersion: vault.filevault.com/v1alpha1
+kind: Filevault
+metadata:
+  labels:
+    app.kubernetes.io/name: filevault-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: filevault-sample
+spec:
+  # TODO(user): Add fields here

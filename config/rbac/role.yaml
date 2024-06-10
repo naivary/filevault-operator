@@ -1,0 +1,58 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - storage.filevault.com
+  resources:
+  - nfs
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - storage.filevault.com
+  resources:
+  - nfs/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - storage.filevault.com
+  resources:
+  - nfs/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - vault.filevault.com
+  resources:
+  - filevaults
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - vault.filevault.com
+  resources:
+  - filevaults/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - vault.filevault.com
+  resources:
+  - filevaults/status
+  verbs:
+  - get
+  - patch
+  - update
