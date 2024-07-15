@@ -24,6 +24,7 @@ import (
 	"github.com/naivary/filevault-operator/util/k8sutil"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+    cond "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -99,6 +100,7 @@ func (r *FilevaultReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 	// update status
 	fv.Status.ServerName = req.Name
 	fv.Status.ClaimName = fv.Spec.ClaimName
+    cond.SetStatusCondition(&fv.Status.Conditions, vaultv1alpha1.NewFilevaultReadyCondition())
 	err = r.Status().Update(ctx, &fv)
 	return ctrl.Result{}, err
 }
