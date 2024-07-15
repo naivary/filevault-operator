@@ -24,6 +24,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/api/resource"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	cond "k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -132,6 +133,7 @@ func (r *NFSReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.R
 	nfs.Status.ServiceName = service.Name
 	nfs.Status.ServerName = server.Name
 	nfs.Status.VolumeName = pv.Name
+    cond.SetStatusCondition(&nfs.Status.Conditions, storagev1alpha1.NewNFSReadyCondition())
 	err = r.Status().Update(ctx, &nfs)
 	return ctrl.Result{}, err
 }

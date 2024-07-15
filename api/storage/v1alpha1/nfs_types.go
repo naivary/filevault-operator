@@ -20,6 +20,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type NFSConditionType string
+
+const (
+    NFSReady NFSConditionType = "NFSReady"
+)
+
+func NewNFSReadyCondition() metav1.Condition {
+    return metav1.Condition{
+        Type: string(NFSReady),
+        Status: metav1.ConditionTrue,
+        Reason: "ServerReady",
+        Message: "nfs server is ready for request",
+    }
+}
+
 // NFSSpec defines the desired state of NFS
 type NFSSpec struct {
 	//+kubebuilder:default:="10Gi"
@@ -44,6 +59,8 @@ type NFSStatus struct {
 	// Name of the PersistentVolumeClaim connected
 	// to the PersistentVolume
 	ClaimName string `json:"claimName,omitempty"`
+
+    Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true
