@@ -23,16 +23,16 @@ import (
 type FilevaultConditionType string
 
 const (
-    FilevaultReady FilevaultConditionType = "FilevaultReady"
+	FilevaultReady FilevaultConditionType = "FilevaultReady"
 )
 
 func NewFilevaultReadyCondition() metav1.Condition {
-    return metav1.Condition{
-        Type: string(FilevaultReady),
-        Status: metav1.ConditionTrue,
-        Reason: "AllDependenciesInitiated",
-        Message: "all dependencies are set and initiated",
-    }
+	return metav1.Condition{
+		Type:    string(FilevaultReady),
+		Status:  metav1.ConditionTrue,
+		Reason:  "DependenciesSetup",
+		Message: "all dependencies are set and initiated",
+	}
 }
 
 // FilevaultSpec defines the desired state of Filevault
@@ -61,7 +61,7 @@ type FilevaultStatus struct {
 	// to use for the filevault server
 	ClaimName string `json:"claimName,omitempty"`
 
-    Conditions []metav1.Condition `json:"conditions,omitempty"`
+	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
 // +kubebuilder:object:root=true

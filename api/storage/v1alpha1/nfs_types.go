@@ -23,16 +23,16 @@ import (
 type NFSConditionType string
 
 const (
-    NFSReady NFSConditionType = "NFSReady"
+	NFSReady NFSConditionType = "NFSReady"
 )
 
 func NewNFSReadyCondition() metav1.Condition {
-    return metav1.Condition{
-        Type: string(NFSReady),
-        Status: metav1.ConditionTrue,
-        Reason: "ServerReady",
-        Message: "nfs server is ready for request",
-    }
+	return metav1.Condition{
+		Type:    string(NFSReady),
+		Status:  metav1.ConditionTrue,
+		Reason:  "ServerReady",
+		Message: "nfs server is ready for request",
+	}
 }
 
 // NFSSpec defines the desired state of NFS
@@ -60,7 +60,26 @@ type NFSStatus struct {
 	// to the PersistentVolume
 	ClaimName string `json:"claimName,omitempty"`
 
-    Conditions []metav1.Condition `json:"conditions,omitempty"`
+	Conditions []metav1.Condition `json:"conditions"`
+}
+
+func (n *NFSStatus) Default() {
+	const u = "unknown"
+	if n.ServerName == "" {
+		n.ServerName = u
+	}
+
+	if n.ServiceName == "" {
+		n.ServiceName = u
+	}
+
+	if n.VolumeName == "" {
+		n.VolumeName = u
+	}
+
+	if n.ClaimName == "" {
+		n.ClaimName = u
+	}
 }
 
 // +kubebuilder:object:root=true

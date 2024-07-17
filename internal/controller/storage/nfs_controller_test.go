@@ -18,6 +18,7 @@ package storage
 
 import (
 	"context"
+	"time"
 
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
@@ -32,53 +33,75 @@ import (
 
 var _ = Describe("NFS Controller", func() {
 	Context("When reconciling a resource", func() {
-		const resourceName = "test-resource"
+		const (
+			serviceName = "nfs"
+			serverName  = "nfs-server"
+			volumeName  = "filevault-default-pv"
+
+			resourceName = "test-nfs-resource"
+			claimName    = "test-claimname"
+			capacity     = "10Gi"
+
+			timeout  = 10 * time.Second
+			duration = 10 * time.Second
+			interval = 250 * time.Millisecond
+		)
 
 		ctx := context.Background()
-
-		typeNamespacedName := types.NamespacedName{
-			Name:      resourceName,
-			Namespace: "default", // TODO(user):Modify as needed
-		}
 		nfs := &storagev1alpha1.NFS{}
+		nn := types.NamespacedName{
+			Name:      resourceName,
+			Namespace: "default",
+		}
 
 		BeforeEach(func() {
 			By("creating the custom resource for the Kind NFS")
-			err := k8sClient.Get(ctx, typeNamespacedName, nfs)
+			err := k8sClient.Get(ctx, nn, nfs)
 			if err != nil && errors.IsNotFound(err) {
 				resource := &storagev1alpha1.NFS{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      resourceName,
-						Namespace: "default",
+						Name:      nn.Name,
+						Namespace: nn.Namespace,
 					},
-					// TODO(user): Specify other spec details if needed.
+					Spec: storagev1alpha1.NFSSpec{
+						Capacity:  capacity,
+						ClaimName: claimName,
+					},
 				}
 				Expect(k8sClient.Create(ctx, resource)).To(Succeed())
 			}
 		})
 
 		AfterEach(func() {
-			// TODO(user): Cleanup logic after each test, like removing the resource instance.
 			resource := &storagev1alpha1.NFS{}
-			err := k8sClient.Get(ctx, typeNamespacedName, resource)
+			err := k8sClient.Get(ctx, nn, resource)
 			Expect(err).NotTo(HaveOccurred())
 
 			By("Cleanup the specific resource instance NFS")
 			Expect(k8sClient.Delete(ctx, resource)).To(Succeed())
 		})
+
 		It("should successfully reconcile the resource", func() {
 			By("Reconciling the created resource")
-			controllerReconciler := &NFSReconciler{
+			reconciler := &NFSReconciler{
 				Client: k8sClient,
 				Scheme: k8sClient.Scheme(),
 			}
 
-			_, err := controllerReconciler.Reconcile(ctx, reconcile.Request{
-				NamespacedName: typeNamespacedName,
+			_, err := reconciler.Reconcile(ctx, reconcile.Request{
+				NamespacedName: nn,
 			})
 			Expect(err).NotTo(HaveOccurred())
-			// TODO(user): Add more specific assertions depending on your controller's reconciliation logic.
-			// Example: If you expect a certain status condition after reconciliation, verify it here.
+
+			Eventually(func() bool {
+				err := k8sClient.Get(ctx, nn, nfs)
+				return err == nil
+			}, timeout, interval).Should(BeTrue())
+
+			Expect(nfs.Status.ClaimName).Should(Equal(claimName))
+			Expect(nfs.Status.ServiceName).Should(Equal(serviceName))
+			Expect(nfs.Status.ServerName).Should(Equal(serverName))
+			Expect(nfs.Status.VolumeName).Should(Equal(volumeName))
 		})
 	})
 })
