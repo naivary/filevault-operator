@@ -69,6 +69,8 @@ func (r *FilevaultReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
+    fv.Status.Default()
+
 	nn := k8sutil.NewNamespacedName(req)
 
 	claim := corev1.PersistentVolumeClaim{}

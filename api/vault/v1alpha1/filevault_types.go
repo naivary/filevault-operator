@@ -64,6 +64,16 @@ type FilevaultStatus struct {
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }
 
+func (n *FilevaultStatus) Default() {
+	const u = "unknown"
+	if n.ServerName == "" {
+		n.ServerName = u
+	}
+	if n.ClaimName == "" {
+		n.ClaimName = u
+	}
+}
+
 // +kubebuilder:object:root=true
 // +kubebuilder:subresource:status
 
