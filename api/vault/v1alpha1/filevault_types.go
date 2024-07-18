@@ -49,6 +49,10 @@ type FilevaultSpec struct {
 	// Name of the PersistentVolumeClaim
 	// to use for the filevault server
 	ClaimName string `json:"claimName,omitempty"`
+
+	// +kubebuilder:validation:optional
+	// +kubebuilder:default:=latest
+	Version string `json:"version,omitempty"`
 }
 
 // FilevaultStatus defines the observed state of Filevault
@@ -60,6 +64,9 @@ type FilevaultStatus struct {
 	// Name of the PersistentVolumeClaim
 	// to use for the filevault server
 	ClaimName string `json:"claimName,omitempty"`
+
+	// Current used version of filevault
+	Version string `json:"version,omitempty"`
 
 	Conditions []metav1.Condition `json:"conditions,omitempty"`
 }

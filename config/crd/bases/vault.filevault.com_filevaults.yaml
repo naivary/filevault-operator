@@ -53,6 +53,9 @@ spec:
               mountPath:
                 default: /mnt/filevault
                 type: string
+              version:
+                default: latest
+                type: string
             type: object
           status:
             description: FilevaultStatus defines the observed state of Filevault
@@ -135,6 +138,9 @@ spec:
                 description: |-
                   Name of the pod which is hosting
                   the filevault server
+                type: string
+              version:
+                description: Current used version of filevault
                 type: string
             type: object
         type: object

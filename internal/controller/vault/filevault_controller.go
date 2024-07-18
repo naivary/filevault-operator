@@ -69,7 +69,7 @@ func (r *FilevaultReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		return ctrl.Result{}, err
 	}
 
-    fv.Status.Default()
+	fv.Status.Default()
 
 	nn := k8sutil.NewNamespacedName(req)
 
@@ -99,9 +99,24 @@ func (r *FilevaultReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 		}
 	}
 
+	if fv.Spec.Version != fv.Status.Version && fv.Status.Version != "" {
+		// delete the old server
+		if err := r.Delete(ctx, &server); err != nil {
+			return ctrl.Result{}, err
+		}
+
+		// create the new server
+		newServer := r.newServer(req, fv.Spec)
+		controllerutil.SetOwnerReference(&fv, &newServer, r.Scheme)
+		if err := r.Create(ctx, &newServer); err != nil {
+			return ctrl.Result{}, err
+		}
+	}
+
 	// update status
 	fv.Status.ServerName = req.Name
 	fv.Status.ClaimName = fv.Spec.ClaimName
+	fv.Status.Version = fv.Spec.Version
 	cond.SetStatusCondition(&fv.Status.Conditions, vaultv1alpha1.NewFilevaultReadyCondition())
 	err = r.Status().Update(ctx, &fv)
 	return ctrl.Result{}, err
@@ -115,7 +130,7 @@ func (r *FilevaultReconciler) SetupWithManager(mgr ctrl.Manager) error {
 }
 
 func (r *FilevaultReconciler) newServer(req ctrl.Request, spec vaultv1alpha1.FilevaultSpec) corev1.Pod {
-	const image = "naivary/filevault:latest"
+	var image = fmt.Sprintf("naivary/filevault:%s", spec.Version)
 	const mountPath = "/mnt/filevault"
 	claimName := spec.ClaimName
 	containerPort := int32(spec.ContainerPort)
