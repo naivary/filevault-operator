@@ -126,6 +126,7 @@ func (r *FilevaultReconciler) Reconcile(ctx context.Context, req ctrl.Request) (
 func (r *FilevaultReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&vaultv1alpha1.Filevault{}).
+        Owns(&corev1.Pod{}).
 		Complete(r)
 }
 
