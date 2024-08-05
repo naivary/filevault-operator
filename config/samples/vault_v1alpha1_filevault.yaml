@@ -6,4 +6,5 @@ metadata:
     app.kubernetes.io/managed-by: kustomize
   name: filevault-sample
 spec:
+  host: "localhost"
   # TODO(user): Add fields here
