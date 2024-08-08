@@ -1,0 +1,15 @@
+apiVersion: vault.filevault.com/v1alpha1
+kind: Filevault
+metadata:
+  labels:
+    app.kubernetes.io/name: filevault-operator
+    app.kubernetes.io/managed-by: kustomize
+  name: filevault-sample
+  namespace: c
+spec:
+  host: localhost
+  containerPort: 8080
+  claimName: "task-pv-claim"
+  mountPath: "/mnt/filevault"
+  version: "1.0"
+  
